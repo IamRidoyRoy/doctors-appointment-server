@@ -19,14 +19,15 @@ app.listen(port, () => {
 
 // Connect to database:
 const { MongoClient, ServerApiVersion } = require('mongodb');
-const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.wrkx6.mongodb.net/?retryWrites=true&w=majority"`;
-console.log(uri);
-const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
+// const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.wrkx6.mongodb.net/?retryWrites=true&w=majority"`;
+var uri = "mongodb://doctors-appointment-db:Ay4YkUZYrWUwm4Ml@cluster0-shard-00-00.wrkx6.mongodb.net:27017,cluster0-shard-00-01.wrkx6.mongodb.net:27017,cluster0-shard-00-02.wrkx6.mongodb.net:27017/?ssl=true&replicaSet=atlas-yljgf3-shard-0&authSource=admin&retryWrites=true&w=majority";
 
+const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 async function run() {
     try {
         await client.connect();
         const serviceCollection = client.db('doctors-appointment').collection('services');
+        const bookingCollection = client.db('doctors-appointment').collection('booking');
 
         // Create an Api for get services data 
         app.get('/service', async (req, res) => {
@@ -35,8 +36,29 @@ async function run() {
             const services = await cursor.toArray();
             res.send(services)
 
-        })
+        });
 
+        // API Naming convention 
+        /* 
+        - app.get('/booking)        --to get all all booking in this collection
+        - app.get('/booking/:id')   --get a specifiq booking
+        - app.post('/booking')  -- add a new booking
+        - app.patch('booking/:id')  -- to edit or update a specific booking
+        - app.delete('booking/:id)  -- to delete any booking
+        
+        */
+
+        // Save Booking Data
+        app.post('/booking', async (req, res) => {
+            const booking = req.body;
+            const query = { treatment: booking.treatment, date: booking.date, patient: booking.patient }
+            const exists = await bookingCollection.findOne(query);
+            if (exists) {
+                return res.send({ success: false, booking: exists })
+            }
+            const result = await bookingCollection.insertOne(booking);
+            return res.send({ success: true, result });
+        })
 
     }
     finally {
