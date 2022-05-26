@@ -20,7 +20,7 @@ app.listen(port, () => {
 // Connect to database:
 const { MongoClient, ServerApiVersion } = require('mongodb');
 // const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.wrkx6.mongodb.net/?retryWrites=true&w=majority"`;
-var uri = "mongodb://doctors-appointment-db:Ay4YkUZYrWUwm4Ml@cluster0-shard-00-00.wrkx6.mongodb.net:27017,cluster0-shard-00-01.wrkx6.mongodb.net:27017,cluster0-shard-00-02.wrkx6.mongodb.net:27017/?ssl=true&replicaSet=atlas-yljgf3-shard-0&authSource=admin&retryWrites=true&w=majority";
+var uri = "mongodb://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0-shard-00-00.wrkx6.mongodb.net:27017,cluster0-shard-00-01.wrkx6.mongodb.net:27017,cluster0-shard-00-02.wrkx6.mongodb.net:27017/?ssl=true&replicaSet=atlas-yljgf3-shard-0&authSource=admin&retryWrites=true&w=majority";
 
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 async function run() {
