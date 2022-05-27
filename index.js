@@ -60,8 +60,6 @@ async function run() {
                 //step 7: set available to slots to make it easier 
                 service.slots = available;
             });
-
-
             res.send(services);
         })
 
@@ -74,6 +72,14 @@ async function run() {
         - app.delete('booking/:id)  -- to delete any booking
         
         */
+
+        // Store booking data in dashboard
+        app.get('/booking', async (req, res) => {
+            const patient = req.query.body;
+            const query = { patient: patient };
+            const bookings = await bookingCollection.find().toArray();
+            res.send(bookings);
+        })
 
         // Save Booking Data
         app.post('/booking', async (req, res) => {
