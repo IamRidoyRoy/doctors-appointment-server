@@ -19,11 +19,26 @@ app.listen(port, () => {
     console.log('Listening to port', port)
 })
 
+function verifyJWT(req, res, next) {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+        return res.status(401).send({ message: 'UnAuthorized access' });
+    }
+    const token = authHeader.split(' ')[1];
+    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, function (err, decoded) {
+        if (err) {
+            return res.status(403).send({ message: 'Forbidden access' })
+        }
+        req.decoded = decoded;
+        next();
+    });
+}
+
+
 // Connect to database:
 const { MongoClient, ServerApiVersion } = require('mongodb');
 // const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.wrkx6.mongodb.net/?retryWrites=true&w=majority"`;
 var uri = `mongodb://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0-shard-00-00.wrkx6.mongodb.net:27017,cluster0-shard-00-01.wrkx6.mongodb.net:27017,cluster0-shard-00-02.wrkx6.mongodb.net:27017/?ssl=true&replicaSet=atlas-yljgf3-shard-0&authSource=admin&retryWrites=true&w=majority`;
-
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 async function run() {
     try {
@@ -78,11 +93,17 @@ async function run() {
         */
 
         // get booking data in dashboard
-        app.get('/booking', async (req, res) => {
-            const patient = req.query.body;
-            const query = { patient: patient };
-            const bookings = await bookingCollection.find().toArray();
-            res.send(bookings);
+        app.get('/booking', verifyJWT, async (req, res) => {
+            const patient = req.query.patient;
+            const decodedEmail = req.decoded.email;
+            if (patient === decodedEmail) {
+                const query = { patient: patient };
+                const bookings = await bookingCollection.find(query).toArray();
+                return res.send(bookings);
+            }
+            else {
+                return res.status(403).send({ message: 'forbidden access' });
+            }
         })
 
         // Save Booking Data
