@@ -28,6 +28,7 @@ async function run() {
         await client.connect();
         const serviceCollection = client.db('doctors-appointment').collection('services');
         const bookingCollection = client.db('doctors-appointment').collection('booking');
+        const userCollection = client.db('doctors-appointment').collection('user');
 
         // Create an Api for get services data 
         app.get('/service', async (req, res) => {
@@ -69,11 +70,12 @@ async function run() {
         - app.get('/booking/:id')   --get a specifiq booking
         - app.post('/booking')  -- add a new booking
         - app.patch('booking/:id')  -- to edit or update a specific booking
+        - app.put('booking/:id')    -- upsert ==> to update(if exist) or insert(If does not exist)
         - app.delete('booking/:id)  -- to delete any booking
         
         */
 
-        // Store booking data in dashboard
+        // get booking data in dashboard
         app.get('/booking', async (req, res) => {
             const patient = req.query.body;
             const query = { patient: patient };
@@ -91,6 +93,20 @@ async function run() {
             }
             const result = await bookingCollection.insertOne(booking);
             return res.send({ success: true, result });
+        })
+
+
+        app.put('/user/:email', async (req, res) => {
+            const email = req.params.email;
+            const user = req.body;
+            const filter = { email: email };
+            const options = { upsert: true };
+            const updateDoc = {
+                $set: user,
+            };
+            const result = await userCollection.updateOne(filter, updateDoc, options);
+            // const token = jwt.sign({ email: email }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' })
+            res.send(result);
         })
 
     }
